@@ -92,76 +92,100 @@ public:
      */
     char * allocateMemoryBestFit(size_t requested) {
         // TODO: your code for allocateMemory memory goes here
-   
-        MemControlBlock * curr = startOfHeap;
+        
+             MemControlBlock * start = startOfHeap;
+        size_t sizeMem = sizeof(MemControlBlock);
+        
         if(requested%4!=0){
-
             requested=requested+(4-requested%4);
         }
-        size_t min = requested;
-        MemControlBlock * nov = curr;
-        for(int i=0;curr;++i, curr=curr->next){
-
-            if(curr->available && curr->size>=requested && sizeof(curr)<min){
-                min = sizeof(curr);
-               nov  = curr;
+        
+        
+        MemControlBlock * blockN;
+        int m = 0;
+        
+    
+        while(start!=nullptr){
+            if (start->available==true){
                 
-
+        if(m==0)  {
+                m = start->size;
+                blockN=start;
             }
-
+        if(start->available==true && sizeof(start)>=requested && sizeof(start)<m){
+                m = sizeof(start);
+                    }
+            }
+            start=start->next;
         }
-        nov->available=false;
-        size_t left=nov->size - requested - sizeof(MemControlBlock);
         
-        if(left > 0){
+        blockN->available=false;
+
+        char * newChar = nullptr;
         
-            char * w = reinterpret_cast<char *> (nov);
-            w+=16+requested;
-            MemControlBlock * newBlock = new (w) MemControlBlock(true,left-16);
-            newBlock->previous=nov;
-            newBlock->next=nov->next;
-            nov->next=newBlock;
-            if(newBlock->next!=nullptr){
-                newBlock->next->previous=newBlock;
+        while (blockN!=nullptr){
+            char * add = reinterpret_cast<char *> (blockN);
+
+            if(sizeof(blockN) - requested - sizeMem > 0){
+                
+                add=add+ sizeof(MemControlBlock)+requested;
+                MemControlBlock * newR = new (add) MemControlBlock(true,sizeof(blockN) - requested - sizeMem-16);
+  
+                newR->next=blockN->next;
+                blockN->next=newR;
+                              newR->previous=blockN;
+                
+             newChar  = reinterpret_cast<char *> (blockN)+sizeMem;
+
             }
             
+            return newChar;
         }
-
-        char * t = reinterpret_cast<char *> (nov)+sizeof(MemControlBlock);
         
-        
-        
-        return t;
-    
+        return nullptr;
     }
     
     /** @brief Deallocate the memory used by the object at the given address */
     void deallocateMemory(char * toDeallocate) {
         // TODO: your code for deallocateMemory memory goes here
+        
         MemControlBlock * curr = startOfHeap;
-        while(curr!=nullptr){
-            char * h = reinterpret_cast<char * >(curr);
-            char * m = reinterpret_cast<char * >(toDeallocate)-16;
-            if(h==m){
+        char * d = reinterpret_cast<char * >(toDeallocate)-sizeof(MemControlBlock);
+        
+        while(curr){
+            char * c = reinterpret_cast<char * >(curr);
+            
+            if(c==d) {
                 curr->available=true;
-   
-                    if(curr->previous!=nullptr){
-                                     if(curr->previous->available==true){
-                    curr->previous->size = curr->previous->size+curr->size+sizeof(MemControlBlock);
+                
+                if(curr->previous){
+                    
+                    if(curr->previous->available==true){
+                        curr->previous->size = curr->previous->size+curr->size;
                         curr->previous->next = curr->next;
                     }
-                    if(curr->next!=nullptr){
-                        curr->next->previous = curr->previous;}
-                    
                 }
+                
+                if(curr->next){
+                    if(curr->next->available==true){
+                        curr->previous->size = curr->previous->size+curr->next->size;
+                        if(curr->next->next){
+                            curr->previous->next = curr->next->next;
+                            curr->next->next->previous=curr->previous;
+                        }
+                        else {
+                            curr->previous->next=nullptr;
+                        }
+                        
+                    }
                 }
-
+            }
+            
             curr=curr->next;
-
+            
         }
-        
-        
     }
+
 };
 
 #endif
