@@ -142,50 +142,34 @@ public:
             return newChar;
         }
         
+    
         return nullptr;
     }
     
     /** @brief Deallocate the memory used by the object at the given address */
     void deallocateMemory(char * toDeallocate) {
         // TODO: your code for deallocateMemory memory goes here
-        
-        MemControlBlock * curr = startOfHeap;
-        char * d = reinterpret_cast<char * >(toDeallocate)-sizeof(MemControlBlock);
-        
-        while(curr){
-            char * c = reinterpret_cast<char * >(curr);
-            
-            if(c==d) {
-                curr->available=true;
+        MemControlBlock * start = startOfHeap;
+        while(start!=nullptr){
+            char * h = reinterpret_cast<char * >(start);
+            char * m = reinterpret_cast<char * >(toDeallocate)-16;
+            if(h==m){
+                start->available=true;
                 
-                if(curr->previous){
+                if(start->previous!=nullptr){
+                    if(start->previous->available==true){
+                        start->previous->size = start->previous->size+start->size+sizeof(MemControlBlock);
+                        start->previous->next = start->next;
+                    }
+                    if(start->next!=nullptr){
+                        start->next->previous = start->previous;}
                     
-                    if(curr->previous->available==true){
-                        curr->previous->size = curr->previous->size+curr->size;
-                        curr->previous->next = curr->next;
-                    }
-                }
-                
-                if(curr->next){
-                    if(curr->next->available==true){
-                        curr->previous->size = curr->previous->size+curr->next->size;
-                        if(curr->next->next){
-                            curr->previous->next = curr->next->next;
-                            curr->next->next->previous=curr->previous;
-                        }
-                        else {
-                            curr->previous->next=nullptr;
-                        }
-                        
-                    }
                 }
             }
             
-            curr=curr->next;
-            
+            start=start->next;
         }
     }
-
 };
 
 #endif
