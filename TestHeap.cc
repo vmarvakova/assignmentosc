@@ -64,14 +64,16 @@ int main() {
         if (objTwo == nullptr) {
             cout << " - Failed: returned nullptr\n";
             cout << "  * heap.print() gives\n";
+
             heap.print();
         } else {
+            
             char * shouldBe = created[i - 1] + sizeof(TestObject) + sizeof(MemControlBlock);
             if (shouldBe == addrTwo) {
                 cout << " - Passed: object created after the MemControlBlock after test object number " << i << endl;
             } else {
                 cout << " - Failed: address returned should have been " << sizeof(MemControlBlock) << " bytes after the start of the heap, but was ";
-                
+
                 cout << static_cast<size_t>(addrTwo - heap.getStartOfHeap());
                 cout << " bytes after it\n";
                 cout << "  * heap.print() gives\n";
@@ -80,7 +82,7 @@ int main() {
         }
     }
 
-    cout << "\nDeallocating the first object (this will crash if it was null)\n";    
+    cout << "\nDeallocating the first object (this will crash if it was null)\n";
     heap.deallocateMemory(created[0]);
     cout << "  * heap.print() gives\n";
     heap.print();
